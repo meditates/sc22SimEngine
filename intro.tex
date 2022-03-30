@@ -1,0 +1,50 @@
+\section{Introduction}
+\label{sec:intro}
+HPC applications tend towards being both large and complex, with numerous dependencies and significant footprints on infrastructure.
+Using these applications to drive activities such as HPC system co-design, procurement and acceptance testing~\cite{larrea2020towards}, explorations of communication bottlenecks~\cite{aaziz2019fine}, or varying programming models~\cite{hochstein2005parallel}, can be daunting and very time-consuming in the face of such complexity.
+
+An obvious approach to this problem is to design \emph{proxy applications}, applications designed to represent some (and, crucially, not all) behaviors or characteristics of a parent application, but with fewer lines of code and dependencies.  Proxy applications have additional benefits for access control; they can often be made open source while representing characteristics of export-controlled code, opening more avenues for measurement and analysis of controlled HPC environments outside secured settings.
+%%
+%
+%with are smaller (fewer lines of code), less complex (fewer dependencies) applications that are specifically designed to represent some behavior or characteristic of a larger, more complex parent application.  
+%They were originally developed so that researchers throughout the HPC community could have a smaller, more tractable code to work with  that has no access controls (i.e.,
+%they are open-source and can represent characteristics of export-controlled code).
+%Some proxies are designed solely to investigate a particular programming model(s), while for other proxies, the communication behavior may be the important bottleneck in the parent application, so this behavior is accurately implemented in the proxy. 
+%It is important to note that many proxies are not intended to represent every aspect of their respective parents.
+
+%Proxy applications have also become widely used for many activities
+%including system co-design and procurement.   The 
+%national laboratories directly engage in co-design with many of the 
+%primary computer system vendors. 
+% OMAR: This paragraph is to the point but as someone don't understand procurement means and don't have time to look into the words. It may skipped by the reviewers.
+
+%Proxy applications have also become widely used for many activities including HPC system advance design, procurement and acceptance testing. 
+The national laboratories directly engage in co-design with many of the primary computer system vendors. The goal of these efforts is to optimize the performance of target applications on the vendor system designs in development.\avani{I think we can cut this paragraph before here, and possibly entirely, but I'd like opinions.} \jeanine{I think this provides some primary motivation and I would not cut.}
+%
+A suite of proxy apps is often the contracted benchmark suite used to optimize system performance, with the assumption that this will in turn optimize target application performance on the system.
+%For this, we need to ensure that the proxy applications used are high fidelity models of the target parent applications, since vendors are developing designs to optimize performance primarily based on proxies.  
+%
+If the communication, memory, and/or node behavior of the parent applications are very different than that of the proxies, the result could be a system that has highly sub-optimal parent application performance. This also applies to procurement activities, where the system procured is often that which optimizes the performance of the proxy application suite given to potential vendors.  
+ 
+
+Proxy applications are freely available from many different organizations, many of which are catalogued in the ExaScale Computing Project (ECP)~\cite{ECPProxySuite1}.  There is strong motivation to minimize the number of proxy applications that maximize the range of application behaviors of interest, since more proxies mean more time and effort in both co-design and procurement. However, narrowing down the suite of proxies used in these processes can be difficult, and is often based on purely qualitative expertise, with no real quantitative data to support these decisions. 
+
+%Thus the two main research questions being addressed here are how closely proxy behavior on a system represents parent behavior, and how similar proxies are to each other so that a co-design or procurement suite does not suffer from redundancy. Moreover, gaps can be identified when there is no proxy that represents the behavior of an application.
+%or gaps.
+The three main research questions we address are: how closely proxy behavior on a system represents parent behavior, how similar proxies are to each other so that a co-design or procurement suite does not suffer from redundancy, and how to identify gaps, where there is no proxy that represents the behavior of a parent application.
+
+We introduce \us to determine the similarity between proxy and parent applications. We generalize the engine for more comprehensive usage in the HPC area, as well as implement several similarity algorithms and demonstrate how to choose the best algorithm for a given dataset \jeanine{Then we need tp demonstrate this.  Right now we say that all of the algorithms return pretty much same results so we choose the simplest.  What about a ground truth discussion somewhere?} We also include algorithms to facilitate feature selection, as minimizing the number of features is very important to reduce the data collected and thus lower the number of application runs.
+%We pose that cosine similarity is the preferred algorithm for our data because of its simplicity, performance, and ease of interpretability by geometric angle. Without knowing which hardware events are more representative, we exhaustively collect all the events that the platforms can provide. 
+%In order to simplify the data collection process and enable cross-platform comparison, we aim to find a concise event subset.\us combines Laplacian score~\cite{he2005laplacian} to rank the important features and the Pearson correlation to remove the correlated features.
+With the help of quantitative similarity measurement in \us, users are guided to choose proper proxy applications for particular uses. Besides quantifying fidelity of proxy applications, similarity measurement approaches in \us can also be applied to various HPC problems, such as compiler optimization, code refactoring, and application input sensitivity.
+
+
+Our primary contributions include:
+\begin{enumerate}
+    \item The first comprehensive characterization of proxy application fidelity at a hardware level using ML-based similarity algorithms and a large suite of ECP proxy/parent application pairs. %to present a comparison of similarity measurements(\S~\ref{sec:SimCom}) to quantitatively demonstrate proxy fidelity.
+    \item 
+    %The features in our FIXME traces and reduce dimensionality by 95\%. 
+    Identification of important features that reduce the dimensionality of the data set by 95\%.
+    \item The \us toolkit and data collection infrastructure are publicly available for similarity measurements and collection, and are actively used and deployed on HPC production systems. %\todo{Need strength}
+\end{enumerate}
+
