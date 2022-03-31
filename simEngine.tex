@@ -8,14 +8,14 @@ To determine how similar proxy and parent applications behave in terms of resour
 %We introduce a framework \us to determine this similarity between proxy and parent applications.
 %Figure~\ref{figs:us} shows the workflow of \us.
 
-We collect hardware performance counters from several proxy, parent applications, and benchmarks to provide a comprehensive collection of informational measurements that reveals the application execution resources fingerprints.  
-Figure~\ref{figs:us} shows the workflow of \us, where we use Lightweight Distributed Metric Service (LDMS)~\cite{ldms_sandia} as the data collection to collect HW performance counters from HPC applications. Then, LDMS send the data to the feature selection layer as a data matrix $X$ that has $n$ rows of application vectors $x_{1},\ldots,x_{n}$ and features $f_{1},\ldots,f_{d}$ as the columns.
+We collect hardware performance counters from several proxy, parent applications, and benchmarks to provide a comprehensive collection of informational measurements that reveals the application execution resources fingerprints to determine similarity.  
+Figure~\ref{figs:us} shows the workflow of \us, where we use Lightweight Distributed Metric Service (LDMS)~\cite{ldms_sandia} as the data collection framework to collect PAPI HW performance counters from HPC applications. Then, LDMS send the data to the feature selection layer as a data matrix $X$ that has $n$ rows of application vectors $x_{1},\ldots,x_{n}$ and features $f_{1},\ldots,f_{d}$ as the columns.
 
 %a vector $x_{i}$ with the length of $d$ dimensions ($d$ being the number of hardware events), and build a data matrix $X$ that has $n$ rows of application vectors $x_{1},\ldots,x_{n}$. The columns of $X$ are the features $f_{1},\ldots,f_{d}$.
 
 During feature selection, we rank the features by calculating importance scores and select the important $k$ features by a correlation filter.
-In this way, we find the subset of $k$ important features which preserve the similarity structure of the matrix $X'$. 
-Finally, using the selected important features, we produce similarity matrices to compare the similarity between applications and quantify the fidelity of proxy and parent applications. The final result will be a similarity matrix. \todo{explain  matrix content}
+The matrix $X'$, which has k features as the columns, preserves the similarity structure of the matrix $X$. 
+Finally, using the selected important features, we produce similarity matrices to compare the similarity between applications and quantify the fidelity of proxy and parent applications. 
 %Our analysis tools that compute feature ranking, correlation filter, and similarity measurement are written in python and use several of the standard math libraries (\eg math, numpy) and scikit-learn facilities.  We have also developed an extensive infrastructure to automate data collection experiments.\todo{possibly move this paragraph to artifact evaluation}
 
 \begin{figure}[ht]
@@ -28,9 +28,12 @@ Finally, using the selected important features, we produce similarity matrices t
 \subsection{Similarity and Distance}
 \label{sec:Sim}
 
-Evaluating the similarity between proxy and parents is one of the main goals of our work. We define two applications as \emph{similar} if the vectors that represent the applications are a short distance apart, which, in many classification tasks, corresponds to the vectors belonging to the same class. %The similarity is defined using a distance measure. 
-After calculating the pairwise distance between each application pair, we get a similarity matrix. % We expect the diagonal of the matrix to be zero distance, as that indicates the distance between the applications and themselves. 
-We compare the result of four typical similarity metrics and choose the metric that most accurately correlates known proxy/parent pairs.
+Evaluating the similarity between proxy and parents is one of the main goals of our work.
+For each application, we sample, by second, the accumulated hardware counters, for the whole execution. Then we average the last 5 seconds of the application execution for each event across ranks. Thus, we get an application vector $x_{i}$, that contains a series of averaged hardware event counters (\ie $x_{ik}$). 
+%\todo{sentence about how we represent applciations as vectors} .
+We define two applications as \emph{similar} if the vectors that represent the applications are a short distance apart, which, in many classification tasks, corresponds to the vectors belonging to the same class. %The similarity is defined using a distance measure. 
+After calculating the pairwise distance between each application pair, we get a similarity matrix. %We expect the diagonal of the matrix to be zero, as that the distance of the vectors between the applications and themselves. 
+Finally, we compare the result of four typical similarity metrics, introduced below, and choose the metric that most accurately correlates known proxy/parent pairs. 
 
 \commentout{
 \subsubsection{Background}
@@ -55,7 +58,7 @@ The Jaccard Index calculates the similarity and diversity of two sample sets, wh
 
 \subsubsection{Cosine Similarity}
 \label{sec:cos_sim}
-Cosine similarity compares the angle between the vectors with the vector inner product in vector spaces of multiple dimensions. The inner product can be conceptualized
+Cosine similarity compares the angle between vectors in an inner product space, where the inner product can be conceptualized
 as the projection of one vector $x_{i}$ in the direction of the other vector $x_{j}$. The calculation relies on the two complementary definitions (algebraic and geometric) for computing the inner product:
 \begin{itemize}
 \item 
@@ -71,18 +74,18 @@ Cosine Similarity:
 \end{equation}
 \end{itemize} 
 %Cosine similarity compares the angle between two vectors $x_{i}$ and $x_{j}$ using vector inner product. 
-The cosine varies from 1.0 (identical vector direction) to 0.0 (orthogonal vectors), and the degree $\theta$ varies from 0 (similar) to 90 (dissimilar).% indicate similar (the same) and dissimilar respectively. 
+The cosine varies from 1.0 (identical vector direction) to 0.0 (orthogonal vectors), and the degree $\theta$ varies from 0 (similar) to 90 (dissimilar). If two applications have similar behavior then we are expecting their cosine similarity angle to be closer to 0 degree.  
 
 \subsubsection{Jensen-Shannon (JS) Divergence}
 \label{sec:JS}
 Instead of comparing two vectors, we can normalize each vector and think of it as a probability distribution (each event turns into a probability), and then compare the two distributions.
-JS divergence~\cite{endres2003new} measures the distance between two probability distributions $P$ and $Q$. JS is a generalization of  Kullback–Leibler (KL) divergence~\cite{kullback1951information}, the relative entropy from distributions $Q$ to $P$, \ie the expectation of the logarithmic difference between the probability distributions $Q$ and $P$. 
+JS divergence~\cite{endres2003new} measures the distance between two probability distributions $P$ and $Q$. JS divergence is a generalization of  Kullback–Leibler (KL) divergence~\cite{kullback1951information}, the relative entropy from distributions $Q$ to $P$, \ie the expectation of the logarithmic difference between the probability distributions $Q$ and $P$. 
 \begin{align*}
 KL(P|Q)&=\sum_{x} P(x) \log \frac{P(x)}{Q(x)} \\ 
 &=-\sum_{x} P(x) \log {Q(x)}+\sum_{x} P(x) \log {P(x)} \\ 
 & =\textrm{cross entropy – entropy}
 \end{align*}
-KL divergence is asymmetric and has no upper bound. Unlike KL divergence, JS divergence is symmetric and returns a value between 0 and 1. %both of which are valuable properties for application comparison. 
+KL divergence is asymmetric and has no upper bound. Unlike KL divergence, JS divergence is symmetric and returns a value between 0 and 1, where 0 means similar and 1 is diverge. %both of which are valuable properties for application comparison. 
 JS divergence is defined as 
 \begin{equation}
 \operatorname{JS}(P \| Q)=\frac{1}{2} KL(P \| M)+\frac{1}{2} KL(Q \| M)
@@ -91,25 +94,29 @@ where $M=\frac{1}{2}(P+Q)$.% JS divergence calculates total KL divergences in tw
 
 \subsubsection{Wasserstein Distance}
 \label{sec:wass}
-Wasserstein distance\cite{rubner2000earth} can be interpreted as the minimum ``cost'' of transforming a probability distribution $P$ into distribution $Q$, where ``cost'' is measured as the amount of distribution weight that must be moved, multiplied by the distance it has to be moved. Unlike other statistic distances like JS divergence, Wasserstein distance considers both the probability of and the distance between events, thus the order of the events matters. Since Wasserstein distance does not require both measures to be in the same probability space (\ie, two vectors may have different lengths), it can be used to compare application performances across platforms that support a different number of hardware event counts. The $p^{th}$ Wasserstein distance is defined as 
+Wasserstein distance\cite{rubner2000earth} can be interpreted as the minimum ``cost'' of transforming a probability distribution $P$ into distribution $Q$, where ``cost'' is measured as the amount of distribution weight that must be moved, times the distance it has to be moved~\cite{wassersteinscipy}. 
+Unlike other statistic distances like JS divergence, Wasserstein distance multiplies the probability distribution and the distance, thus the order of the events matters. 
+%If the events that have divergent behaviour located far away in the vectors, the Wasserstein distance is bigger. 
+Since Wasserstein distance does not require both measures to be in the same probability space (\ie, two vectors may have different lengths), it can be used to compare application performances across platforms that support a different number of hardware event counts. The $p^{th}$ Wasserstein distance is defined as 
 \begin{equation}
 W_{p}(P, Q)=\left(\inf _{J \in \mathcal{J}(P, Q)} \int\|x-y\|^{p} d J(x, y)\right)^{1 / p}
 \end{equation},
-where $\mathcal{J}(P, Q)$ denotes all joint distributions $J$ for $(X,Y)$ that have marginals $P$ and $Q$. Generally, when $p = 1$ and $d = 1$, we compute the first Wasserstein distance between two 1-dimensional distributions, which is also known as earth mover distance. 
+where $\mathcal{J}(P, Q)$ denotes all joint distributions $J$ for $(X,Y)$ that have marginals $P$ and $Q$. Generally, when $p = 1$ and $d = 1$, we compute the first Wasserstein distance between two 1-dimensional distributions, which is also known as earth mover distance. Wasserstein distance does not have upper bound, where 0 means similar and bigger value means dissimilar.
 
 \subsubsection{Mahalanobis Distance}
 Mahalanobis distance~\cite{Mah} is an effective multivariate distance metric that measures the distance between a point (vector) and a distribution, or two points from the same distribution. 
 The Mahalanobis distance~\cite{Mah} between two vectors $x_i$ and $x_j$ from the same distribution is defined as
 \begin{equation}d_{M}(x_i, x_j)=\sqrt{(x_i-x_j)^{T} S^{-1}(x_i-x_j)}
-\end{equation}, where $S$ is the covariance matrix of the data set. Geometrically, it transforms the data by whitening and normalizing the covariance and computes the ordinary Euclidean distance for the transformed data. Since the Mahalanobis distance accounts for the variance of each variable and the covariance between variables, it is used in areas such as multivariate anomaly detection and imbalanced classification. Note that the Mahalanobis distance requires more samples than features to calculate the covariance matrix. Thus, we reduce features with principal components analysis (PCA) before applying Mahalanobis distance.
+\end{equation}, where $S$ is the covariance matrix of the data set. Geometrically, it transforms the data by whitening and normalizing the covariance and computes the ordinary Euclidean distance for the transformed data. Since the Mahalanobis distance accounts for the variance of each variable and the covariance between variables, it is used in areas such as multivariate anomaly detection and imbalanced classification. Note that the Mahalanobis distance requires more samples than features to calculate the covariance matrix. Thus, we reduce features with principal components analysis (PCA) before applying Mahalanobis distance. Mahalanobis distance also does not have upper bound, where 0 means similar and bigger value means dissimilar.
 
 \subsection{Feature Selection}
+The data collection process is torture in our experiment. Without knowing which hardware events are more representative, we exhaustively collected all the events that the platforms could provide, which is around 500 hardware events for each application on platform Intel Skylake. 
 By Occam’s Razor, the simplest model that explains a situation is the correct approach. 
 Irrelevant features may increase noise and reduce the accuracy of a model, while adding to latency, storage overhead, and the amount of data processing. There are two classes of algorithms to reduce a feature space: feature extraction and feature selection. 
-Feature extraction, which recombines original features into a denser set, retains the overhead of data collection and sacrifices interpretability, so we focus on feature selection.
+Feature extraction, which recombines original features into a denser set, retains the overhead of data collection and sacrifices interpretability, so we focus on feature selection. Feature selection speeds up algorithms, improves accuracy, and enhances comprehensibility~\cite{guyon2003introduction}. 
 
 %Feature extraction is to find a smaller set of new variables, each being a combination of the original features. Because feature extraction still requires collecting all the features and loses interpretability, it is not what we are looking for. 
-Feature selection speeds up algorithms, improves accuracy, and enhances comprehensibility~\cite{guyon2003introduction}. 
+
 %\avani{I propose we cut the rest of this paragraph}
 %Feature Selection can be categorized into filter methods, wrapper methods, and embedded methods. The filter methods always focus on the intrinsic properties (\eg Variance) of data itself, which are more suitable for unsupervised learning. %Examples of filter methods include Information Gain, Chi-square Test, Fisher’s Score, Correlation Coefficient, Variance Threshold, Mean Absolute Difference, and Dispersion ratio. 
 %Wrapper methods evaluate features by applying a selection algorithm and comparing the final value with the target value. They require a greedy search in the feature space. The typical wrapper method is Recursive Feature Elimination\cite{guyon2002gene}. Embedded methods, such as Random Forest\cite{ho1995random}, get the important features while interactively building up the model. Most of the wrapper and embedded feature selection methods are designed for supervised learning. 
@@ -120,7 +127,7 @@ To simplify the data collection process and enable cross-platform comparison, we
 Consider a data matrix $X$ that has $n$ rows of samples with $d$ dimensions $x_{1},...,x_{n}$. The columns of $X$ are the features $f_{1},...f_{d}$. Our goal is to find the subset of $k$ important features which preserve the similarity structure of the matrix $X$. 
 
 %Since we lack ground truth for the class label for each application, the filter method of feature selection is more suitable.
-Since we are only interested in keeping the similarity relationship between the proxy/parent application pair points, but not concerned about the dissimilarity of non-proxy/parent application pair points, neighbor embedding is the perfect unsupervised method for this task. We choose a graph-based feature ranking technology called Laplacian score~\cite{he2005laplacian} to compute the importance of features.  Laplacian score builds a nearest neighbor graph for application points and seeks those features that respect local graph structure. In our case, these features help preserve the neighbor similarity between proxy and parent applications.  
+Since we are only interested in maintaining the similarity relationship between the proxy/parent application pair points, but not concerned about the dissimilarity of non-proxy/parent application pair points, neighbor embedding is the perfect unsupervised method for this task. We choose a graph-based feature ranking technology called Laplacian score~\cite{he2005laplacian} to compute the importance of features.  Laplacian score builds a nearest neighbor graph for application points and seeks those features that respect local graph structure. In our case, these features help preserve the neighbor similarity between proxy and parent applications.  
 
 The Laplacian score of the $r^\textrm{th}$ feature can be expressed as:
 \begin{equation}L_{r}=\frac{\widetilde{\mathbf{f}}_{r}^{T} L \widetilde{\mathbf{f}}_{r}}{\widetilde{\mathbf{f}}_{r}^{T} \widetilde{\mathbf{f}_{r}}}
