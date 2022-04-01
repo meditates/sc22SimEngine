@@ -230,7 +230,7 @@ We collect the data in subgroups according to the event category suggested by ex
 \subsection{Data Pre-Processing}
 \label{sec:prep}
 To account for performance variation and any performance counter variation, we run each event subgroup 5 times for each application, resulting in over 3000 data-collection runs.  Further, we collect data from each application process (\ie, each MPI rank).  For similarity analysis, we need a single vector for each application.  Therefore, the data must be carefully aligned and averaged while maintaining its physical meaning.  Although a detailed discussion of our methodology to accomplish this is outside the scope of this work, we (1) align the data in time (which accounts for performance variation), (2) compute the average for each event across all ranks for each of the five runs, (3) compute the average for each event for each of the five runs, and finally (4) normalize the event counts by cycles executed. The result is a vector of length 500 (for the Intel platform) for each application, where each element is 
-$event_count/CPU_cycles$.  
+$event\_count/CPU\_cycles$.  
 
 %Before an application vector is input into similarity metrics, we normalize the event counts by cycles executed. Thus, all events which are input into the similarity matrix are event counts or CPU cycles.
 Because irrelevant (noisy) features can hurt the performance of the cluster learning for unsupervised feature selection~\cite{lindenbaum2021differentiable}, we  remove these features before they are ranked. %We leverage our model by domain expertise. 
