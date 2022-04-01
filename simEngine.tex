@@ -1,7 +1,7 @@
 \section{\us}
 \label{sec:simEngine}
 %Our fundamental question in this work is 
-To determine how similar proxy and parent applications behave in terms of resource utilization such as computation and memory, we explore the use of several ML similarity techniques. Those techniques work differently, making it hard to determine which one reveals the real relationship, so we create \us to intercept the level of agreement between those techniques that could reflect the accurate answer. 
+To determine how similar proxy and parent applications behave in terms of resource utilization such as computation and memory, we explore the use of several ML similarity techniques, which are all unsupervised. Those techniques work differently, making it hard to determine which one reveals the real relationship, so we create \us to intercept the level of agreement between those techniques that could reflect the accurate answer. 
 %\todo{why we need to use several similarity techniques?}
 %A fundamental question we pose is: ``how similar are applications to each other in the way they utilize system resources, particularly computation and memory?''
 %, with a focus in this work on node computation and memory resources. 
@@ -101,33 +101,38 @@ Since Wasserstein distance does not require both measures to be in the same prob
 \begin{equation}
 W_{p}(P, Q)=\left(\inf _{J \in \mathcal{J}(P, Q)} \int\|x-y\|^{p} d J(x, y)\right)^{1 / p}
 \end{equation},
-where $\mathcal{J}(P, Q)$ denotes all joint distributions $J$ for $(X,Y)$ that have marginals $P$ and $Q$. Generally, when $p = 1$ and $d = 1$, we compute the first Wasserstein distance between two 1-dimensional distributions, which is also known as earth mover distance. Wasserstein distance does not have upper bound, where 0 means similar and bigger value means dissimilar.
+where $\mathcal{J}(P, Q)$ denotes all joint distributions $J$ for $(X,Y)$ that have marginals $P$ and $Q$. 
+We use the first Wasserstein distance ($p$ = 1) between two 1-dimensional distributions, which is also known as earth mover distance to determine similarity. Wasserstein distance does not have upper bound, where 0 means similar and bigger value means dissimilar.
+%Generally, when $p = 1$ and $d = 1$, we compute the first Wasserstein distance between two 1-dimensional distributions, which is also known as earth mover distance. Wasserstein distance does not have upper bound, where 0 means similar and bigger value means dissimilar.
 
 \subsubsection{Mahalanobis Distance}
 Mahalanobis distance~\cite{Mah} is an effective multivariate distance metric that measures the distance between a point (vector) and a distribution, or two points from the same distribution. 
-The Mahalanobis distance~\cite{Mah} between two vectors $x_i$ and $x_j$ from the same distribution is defined as
+The Mahalanobis distance between two vectors $x_i$ and $x_j$ from the same distribution is defined as
 \begin{equation}d_{M}(x_i, x_j)=\sqrt{(x_i-x_j)^{T} S^{-1}(x_i-x_j)}
 \end{equation}, where $S$ is the covariance matrix of the data set. Geometrically, it transforms the data by whitening and normalizing the covariance and computes the ordinary Euclidean distance for the transformed data. Since the Mahalanobis distance accounts for the variance of each variable and the covariance between variables, it is used in areas such as multivariate anomaly detection and imbalanced classification. Note that the Mahalanobis distance requires more samples than features to calculate the covariance matrix. Thus, we reduce features with principal components analysis (PCA) before applying Mahalanobis distance. Mahalanobis distance also does not have upper bound, where 0 means similar and bigger value means dissimilar.
 
 \subsection{Feature Selection}
-The data collection process is torture in our experiment. Without knowing which hardware events are more representative, we exhaustively collected all the events that the platforms could provide, which is around 500 hardware events for each application on platform Intel Skylake. 
-By Occam’s Razor, the simplest model that explains a situation is the correct approach. 
-Irrelevant features may increase noise and reduce the accuracy of a model, while adding to latency, storage overhead, and the amount of data processing. There are two classes of algorithms to reduce a feature space: feature extraction and feature selection. 
-Feature extraction, which recombines original features into a denser set, retains the overhead of data collection and sacrifices interpretability, so we focus on feature selection. Feature selection speeds up algorithms, improves accuracy, and enhances comprehensibility~\cite{guyon2003introduction}. 
-
+%The data collection process is torture in our experiment. Without knowing which hardware events are more representative, we exhaustively collected all the events that the platforms could provide, which is around 500 hardware events for each application on platform Intel Skylake. 
+Large hardware performance counters are available to collect in most HPC architectures, making it hard to find a minimal set that consider more representative. So we exhaustively collected all the events available on the Intel Skylake platform, which is around 500 hardware events for each application.
+%Occam’s Razor shows that the simplest model that explains a situation is the correct approach. 
+We also want to reduce irrelevant features that may add noise, reduce model accuracy, increase latency, storage overhead, and extend the amount of data processing. 
+%There are two classes of algorithms to reduce a feature space: feature extraction and feature selection. 
+%feature extraction, which recombines original features into a denser set, retains the overhead of data collection and sacrifices interpretability, so we focus on feature selection.
+Therefore we have to find a suitable feature selection algorithm that is simple and efficient to speeds up our engine, 
+%improves accuracy, and enhances comprehensibility. 
 %Feature extraction is to find a smaller set of new variables, each being a combination of the original features. Because feature extraction still requires collecting all the features and loses interpretability, it is not what we are looking for. 
-
 %\avani{I propose we cut the rest of this paragraph}
 %Feature Selection can be categorized into filter methods, wrapper methods, and embedded methods. The filter methods always focus on the intrinsic properties (\eg Variance) of data itself, which are more suitable for unsupervised learning. %Examples of filter methods include Information Gain, Chi-square Test, Fisher’s Score, Correlation Coefficient, Variance Threshold, Mean Absolute Difference, and Dispersion ratio. 
 %Wrapper methods evaluate features by applying a selection algorithm and comparing the final value with the target value. They require a greedy search in the feature space. The typical wrapper method is Recursive Feature Elimination\cite{guyon2002gene}. Embedded methods, such as Random Forest\cite{ho1995random}, get the important features while interactively building up the model. Most of the wrapper and embedded feature selection methods are designed for supervised learning. 
-To simplify the data collection process and enable cross-platform comparison, we aim to find a concise event subset. \us uses Laplacian score~\cite{he2005laplacian} to rank the important features, combined with the Pearson correlation to remove the correlated features.
+%find a concise event subset, simplify the data collection, and enable cross-platform comparison. \us uses Laplacian score~\cite{he2005laplacian} to rank the important features, combined with the Pearson correlation to remove the correlated features.
+find a concise event subset of uncorrelated features, simplify the data collection, and enable cross-platform comparison. There are two components in the feature selection layer in \us, which are: feature score, that is used to rank the important features and correlation filter, that is used to remove the correlated features. 
 
 \subsubsection{Feature Score}
 \label{sec:feature_score}
-Consider a data matrix $X$ that has $n$ rows of samples with $d$ dimensions $x_{1},...,x_{n}$. The columns of $X$ are the features $f_{1},...f_{d}$. Our goal is to find the subset of $k$ important features which preserve the similarity structure of the matrix $X$. 
+Consider a data matrix $X$ that has $n$ rows of samples $x_{1},...,x_{n}$ with $d$ features $f_{1},...f_{d}$. Our goal is to find the subset of $k$ important features which preserve the similarity structure of the matrix $X$. 
 
 %Since we lack ground truth for the class label for each application, the filter method of feature selection is more suitable.
-Since we are only interested in maintaining the similarity relationship between the proxy/parent application pair points, but not concerned about the dissimilarity of non-proxy/parent application pair points, neighbor embedding is the perfect unsupervised method for this task. We choose a graph-based feature ranking technology called Laplacian score~\cite{he2005laplacian} to compute the importance of features.  Laplacian score builds a nearest neighbor graph for application points and seeks those features that respect local graph structure. In our case, these features help preserve the neighbor similarity between proxy and parent applications.  
+Since we are only interested in maintaining the similarity relationship between the proxy/parent application pairs, but not concerned about the dissimilarity of non-proxy/parent application pairs, neighbor embedding is the perfect unsupervised method for this task. We choose a graph-based feature ranking technology called Laplacian score~\cite{he2005laplacian} to compute the importance of features.  Laplacian score builds a nearest neighbor graph for application points and seeks those features that respect local graph structure. In our case, these features help preserve the neighbor similarity between proxy and parent applications.  
 
 The Laplacian score of the $r^\textrm{th}$ feature can be expressed as:
 \begin{equation}L_{r}=\frac{\widetilde{\mathbf{f}}_{r}^{T} L \widetilde{\mathbf{f}}_{r}}{\widetilde{\mathbf{f}}_{r}^{T} \widetilde{\mathbf{f}_{r}}}
@@ -135,7 +140,9 @@ The Laplacian score of the $r^\textrm{th}$ feature can be expressed as:
 , or in a more understandable way:
 \begin{equation}
 L_{r}=\frac{\Sigma_{i j}\left(f_{r i}-f_{r j}\right)^{2} S_{i j}}{\operatorname{Var}\left(\mathbf{f}_{r}\right)}
-\end{equation} , where $f_r$ is the $r^\textrm{th}$ feature, and $S_{i j}$ is the weight matrix. An element $S_{i j}$ will only have a nonzero value $S_{i j}=e^{-\frac{\left\|\mathrm{x}_{i}-\mathrm{x}_{j}\right\|^{2}}{2t^{2}}}$ when $i$ and $j$ are neighbors, otherwise the value of that entry is zero. $t$ is a user-defined bandwidth, with $1$ as a default value. The denominator indicates the variance of the $r^\textrm{th}$ feature; larger values correlate to more information represented. The numerator indicates the sum of feature value differences within the points' neighbors; here, the smaller the Laplacian score is, the more important the feature is. Finally, we get the ranked features sorted by Laplacian score.
+\end{equation} , where $f_r$ is the $r^\textrm{th}$ feature, and $S_{i j}$ is the weight matrix.  
+\begin{equation}S_{i j}=e^{-\frac{\left\|\mathrm{x}_{i}-\mathrm{x}_{j}\right\|^{2}}{2t^{2}}}\end{equation}
+An element $S_{i j}$ will only have a nonzero value when $i$ and $j$ are neighbors, otherwise the value of that entry is zero. $t$ is a user-defined bandwidth, with $1$ as a default value. The denominator indicates the variance of the $r^\textrm{th}$ feature; larger values correlate to more information represented. The numerator indicates the sum of feature value differences within the points' neighbors; here, the smaller the Laplacian score is, the more important the feature is. Finally, we get the ranked features sorted by Laplacian score.
 
 Since features are evaluated separately in the Laplacian score, if we select features with the smallest Laplacian score, some redundant features may be included. To select an informative set of important features in order to optimize combination performance, we introduce the correlation filter.
 
@@ -147,6 +154,6 @@ When a group of features are highly correlated, we only need to include one in o
 where $\operatorname{cov}$ is the covariance and $\sigma_{f_{i}}$is the standard deviation of $f_{i}$.
 PCC has a value between +1 and -1, where +1 is a total positive linear correlation, 0 is no linear correlation, and -1 is a total negative linear correlation. We choose a PCC threshold of 0.9 because we want to keep reasonable number of important features while removing strongly correlated ones.  
 
-We calculate the pairwise PCC for all ranked features and fetch features one by one from the ranked feature to our important feature subset. Each time we select one feature, we remove the redundant features with PCC $> 0.9$ or $< -0.9$ from the remaining features. We stop collecting features when there are no more features in the feature pool. %we obtain a pre-selected number, or when there are no more features in the feature pool.
+We calculate the pairwise PCC for all ranked features and fetch features sequentially from the ranked feature to our important feature subset. Each time we select one feature, we remove the redundant features with PCC $> 0.9$ or $< -0.9$ from the remaining features. We stop collecting features when there are no more features in the feature pool. %we obtain a pre-selected number, or when there are no more features in the feature pool.
 
 Note that the PCC can evaluate only a linear relationship between two continuous variables; we will investigate more correlation methods in future work.

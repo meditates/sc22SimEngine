@@ -1,11 +1,192 @@
 \section{Experiment Platform}
 \label{sec:expPlatform}
-In this section, we present our methodology to collect and preprocess data, how we use \us to perform the similarity analysis, and the platform we use for data collection, including the system and the application suite used. 
+In this section, we present our methodology for collecting data and 
+how we use that data to perform similarity analysis using \us.  We use
+an Intel Skylake production HPC system to collect
+data on 21 proxy and parent applications that span several scientific
+domains.  We also collect data on several standard HPC benchmarks and 
+use these in our analysis to provide a baseline for aiding in understanding the results.
+ 
+\subsection{Application Suite}
+Of the applications used in this work, some are proxy/parent pairs and
+some are proxies or parents that are not paired. We also include several
+standard HPC benchmarks.
+Not all applications
+we use are proxy/parent pairs because some proxies 
+have export-controlled parents for which data cannot be 
+publicly released.  Also, Castro is the parent of a 
+proxy called Thornado~\cite{ECPProxySuite1}, but at this point, we are not
+using Thornado because of I/O issues within the code that caused problems with 
+data collection.
+\cite{ECPProxySuite1}.
 
-\subsection{Computational Platform}
-We perform all data collection and application execution on an Intel Skylake platform (Table~\ref{tab:platformSpecs})  %\todo{[PULL PLATFORM STATS FROM ISC PAPER]}.
-We use the vendor-specific compiler on each platform to compile all applications except OpenMC. The system runs RHEL7.8, and we use the Intel \emph{icc} 20.0.2.254 compiler and \emph{OpenMPI} 4.0.3.  Constraints within the OpenMC code require it to be compiled with the GNU compiler (8.3.1). 
+We use the Intel compiler to build
+all of the applications except OpenMC.  
+On the Intel Skylake system, we use \emph{icc} 20.0.2.254 and
+\emph{OpenMPI} 4.0.3.  OpenMC requires the use of 
+the 8.3.1 GNU compiler, due to inherent constraints
+within the code.
 
+For each proxy/parent pair,
+we use the same input problem and/or parameters where possible. 
+In cases where we cannot run the same problem, we use the closest 
+matching problem available and we size both proxy and parent application
+problems in all cases to use about 50\% of the available memory.   
+
+\definecolor{Gray}{gray}{0.9}
+\begin{table}[!t]
+\scriptsize
+\caption{Proxy/Parent version information}
+\label{tab:versions}
+\centering
+\begin{tabular}{ll|ll}
+\toprule
+\textbf{Proxy}                                  & \textbf{Version}                          & \textbf{Parent}                       & \textbf{Version}                           \\ 
+\midrule
+AMG2013~\cite{AMG}                    & \cellcolor{Gray!50}2013\_0       & N/A                                         & \cellcolor{Gray!50}N/A                 \\
+N/A                                                 & \cellcolor{Gray!50}N/A               & Castro~\cite{Castro}               & \cellcolor{Gray!50}20.07              \\
+ExaMiniMD~\cite{ostiExaMiniMD}        & \cellcolor{Gray!50}1.0               & LAMMPS~\cite{LAMMPS}      & \cellcolor{Gray!50}17 Aug 2017   \\
+Laghos~\cite{Laghos}                     & \cellcolor{Gray!50}3.0               & N/A                                          & \cellcolor{Gray!50}N/A                  \\
+miniQMC~\cite{richards2018fy18}  & \cellcolor{Gray!50}0.4               & QMCPACK~\cite{qmcpack}    & \cellcolor{Gray!50}3.8                  \\
+miniVite~\cite{miniVite}                    & \cellcolor{Gray!50}1.0               & Vite~\cite{Vite}                        & \cellcolor{Gray!50} 30 Sept 2020  \\
+Nekbone~\cite{nekbone}                 & \cellcolor{Gray!50} 3.1               & Nek5000~\cite{Nek5000}        & \cellcolor{Gray!50}19.0                 \\
+PENNANT~\cite{pennant}               & \cellcolor{Gray!50}0.9                & N/A                                          & \cellcolor{Gray!50} N/A                 \\
+PICSARlite~\cite{picsarlite}             &\cellcolor{Gray!50}16 July 2020  & PICSAR~\cite{PICSAR}         & \cellcolor{Gray!50}16 July 2020    \\
+SNAP~\cite{snap}                            & \cellcolor{Gray!50}1.09              & N/A                                          & \cellcolor{Gray!50}N/A                  \\
+SW4lite~\cite{ECPProxySuite1}        & \cellcolor{Gray!50}2.0                & SW4~\cite{SW42}                  & \cellcolor{Gray!50}2.0                    \\
+SWFFT~\cite{ECPProxySuite1}  & \cellcolor{Gray!50}1.0                & HACC~\cite{HACC}                & \cellcolor{Gray!50} 1.0                 \\
+XSBench~\cite{XSBench}               & \cellcolor{Gray!50}19.0               & OpenMC~\cite{OpenMC}       & \cellcolor{Gray!50}0.11.0             \\
+HPCG benchmark~\cite{hpcg}        &  \cellcolor{Gray!50}3.1                & N/A                                         &  \cellcolor{Gray!50}N/A                \\
+HPCC benchmark~\cite{hpcc}        &  \cellcolor{Gray!50}1.5.0             & N/A                                          &  \cellcolor{Gray!50}N/A               \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:versions} contains all of the proxy/parent pairs and other
+applications and the specific versions that we use in this work. If a
+date is given, it is the latest code available in the repository at
+that date.
+
+\jeanine{I put the descriptions of the applications in, but we can delete
+if we need the space.}
+AMG2013~\cite{AMG} is a proxy application for BoomerAMG and is a parallel
+algebraic multigrid solver for linear systems arising from unstructured grid
+problems.  %We are using version 2013\_0 and are running 
+We ran the default Laplace problem with a custom resizing.
+We did not run BoomerAMG because we did not have the expertise to 
+ensure that we treated it fairly, but we intend to use it in the future.
+%
+LAMMPS~\cite{LAMMPS} is a classical molecular dynamics code, 
+%that models particles in solid, liquid, and gas states.  A 
+with particles ranging from a single atom to a large composition of material.  
+%LAMMPS integrates Newton's equations of motion to model particle interaction, using lists to track neighboring particles. 
+It implements mostly short-range solvers, but does include some methods for long-range particle interactions.  
+ExaMiniMD~\cite{ostiExaMiniMD}, which is  
+a proxy for LAMMPS, %uses spatial domain decomposition but 
+implements limited types of interactions, and only short-range ones.
+%ExaMiniMD and LAMMPS both use neighbor lists for the force calculation. ExaMiniMD is intended to represent both the computation (including memory behavior) and communication that is implemented in LAMMPS. 
+%
+Laghos~\cite{Laghos} is a proxy application that is a high-order Lagrangian
+hydrocode meant to represent several compressible shock hydrocodes, including BLAST.
+%We ran version 3.0 of the code using libraries: hypre
+%version 2.11.2, metis version 4.0.3, and mfem version 4.1.1.  
+%The problem that we are running is 
+%We ran the Sedov blast wave problem with partial assembly. 
+We did not
+run BLAST because it is export controlled and we are still working with LLNL
+to run its experiments on their systems.
+%
+QMCPACK~\cite{qmcpack} is a quantum Monte Carlo package for computing the electronic structure of atoms. MiniQMC~\cite{richards2018fy18} 
+%is a simplified computational proxy covering 
+covers QMCPACK's essential computational kernels. The computational themes of miniQMC and QMCPACK are particle methods, dense and sparse linear algebra, and Monte Carlo methods.
+% Both implement Variational Monte Carlo, and diffusion Monte Carlo advanced QMC algorithms.
+%
+Vite~\cite{Vite} is an implementation of Louvain method for (undirected)
+graph clustering or community detection.  
+%The version we ar running was pulled from the repository on September 30, 2020.  
+MiniVite~\cite{miniVite} is a proxy application for Vite that implements a
+single phase of the Louvain method in distributed memory for community
+detection. 
+%We ran both over the same large random graph generated using other tools.
+%We are running version 1.0 and running 
+%We ran it with the same random graph as Vite.
+%
+Nek5000~\cite{Nek5000} is a spectral element computational fluid dynamics
+solver while its proxy application Nekbone solves the Poisson equation with
+a spectral element multigrid preconditioned conjugate gradient solver.  
+%We are using version 19.0 of Nek5000 and are running 
+%% we are using version 17.0 of Nekbone with 
+%With Nek5000 we ran an eddy test problem and 
+%for Nekbone ran an expanded version of the example2 test problem.
+%
+% NEED PENNANT and bibtex
+PENNANT~\cite{pennant} serves as a proxy application for rad-hydro physics-based algorithms on an unstructured mesh, modeling the computation and memory access patterns typical to rad-hydro applications. It is modeled on, and thus serves as a proxy for, the LANL code FLAG.
+%
+PICSAR~\cite{PICSAR} is Particle-In-Cell solver, while its proxy
+application, PICSARlite~\cite{picsarlite}, is a subset of the actual codebase.  
+%We are using a version of the code that was pulled from the repository on July 16, 2020.
+%We ran a resized version of the homogeneous\_plasma\_lite problem for both of
+%the codes.
+%
+% NEED SNAP and bibtex
+SNAP~\cite{snap} serves as a proxy application for discrete ordinates neutral particle transport, modeling the computation and memory access patterns typical to neutral particle transport applications. It is modeled on, and thus is a proxy for, the LANL code PARTISN.
+%
+SW4~\cite{SW42} is a geodynamics code that solves 3D seismc wave equations with local mesh refinement.
+%enables 3D modeling of surface topologies to understand the physics and impacts of earthquakes and other seismological events.  The seismic wave equations are solved on locations that are specified either by Cartesian or geographic coordinates.
+%The finite difference wave equations numerically simulate wave propagation to fourth-order, which is very accurate for calculating surface waves.  Cartesian local mesh refinement is used to improve accuracy in regions near the free surface, where more resolution is needed to solve short wavelengths and maintain accuracy. 
+%The code is mostly written in C++, but all the numerical methods are implemented in Fortran 77.  
+SW4lite~\cite{ECPProxySuite1} is a scaled-down version of SW4 that has limited seismic modeling capabilities, but does solve the elastic wave equation and uses some of the same numerical kernels as those implemented in SW4.  %\cite{SW4lite}
+%Its limited modeling capability limits the types of surfaces and areas that can be used in the simulations.  SW4lite is a close enough representation of SW4 that it is used to explore performance optimization, particularly with respect to memory layout and threading, but it is also representative of the computation and communication present in SW4.
+%
+The Hardware Accelerated Cosmology Code (HACC)~\cite{HACC} is an 
+N-body framework that simulates the evolution of mass in the universe, 
+%and its structure within the context of dark matter and dark energy. 
+with both short and long range interactions.
+% It uses particle mesh techniques, splitting the force calculation into a 
+%grid-based spectral particle mesh component for medium to long-range 
+%interactions and direct particle-to-particle solvers for short-range interactions. 
+The long-range solvers implement an underlying 3D FFT.
+% that is domain-decomposed to 2D.  
+SWFFT~\cite{ECPProxySuite1} is the 3D FFT that is %\cite{SWFFT}
+implemented in HACC.  Since this FFT accounts for a large portion 
+of the HACC execution time, SWFFT serves as a proxy for HACC.  
+%SWFFT replicates the transform and is representative of the computation 
+%and communication involved.
+%
+Castro~\cite{Castro} is an adaptive mesh, astrophysical radiation
+hydrodynamics simulation code.  %We used version 20.07 and 
+%%We ran a resized Sedov blast hydrodynamics scaling problem.
+%Thornado~\cite{ref:thornado} is a proxy application for Castro that solves the
+%equation of radiative transfer using the multi-group two-moment approximation.
+%%We used version 1.0 and 
+%%We ran the supplied fixed size deleptonization problem.
+%
+OpenMC~\cite{OpenMC} is a Monte Carlo particle transport code.  
+%We are using version 0.11.0 and are running 
+%We ran a modified pincell example problem.
+XSBench~\cite{XSBench} is a proxy application for OpenMC and represents the
+continuous energy macroscopic neutron cross section lookup kernel, which is
+a key computational kernel of Monte Carlo particle transport. 
+%We used the small built in problem with some modified inputs.
+HPCG~\cite{hpcg} and HPCC~\cite{hpcc} are commonly-used HPC
+benchmarks.  HPCG implements a suite of computational and data access 
+patterns that closely match a broad set of important scientific
+applications. HPCC~\cite{hpcc} is a benchmark suite designed
+to exercise standard memory access patterns that are common
+to many scientific applications. 
+
+\subsection{System Platform}
+%Attaway and Vortex.
+%Talk a little about architecture.
+%Maybe here talk about problem with IBM compiler.
+For data collection, we chose an Intel Skylake platform,
+running the RHEL7.8 operating system (OS,)
+with basic characteristics as shown in Table~\ref{tab:platformSpecs}.
+We run all of our applications in MPI-only mode and the collection
+runs are done using 128 ranks, one rank per core, on four nodes.
+We chose this configuration because it is small enough to feasibly 
+run large numbers of experiments relatively quickly, yet it is large 
+enough to capture important communication behavior.
 \begin{table}
    \begin{center}
     %\scriptsize
@@ -23,146 +204,42 @@ We use the vendor-specific compiler on each platform to compile all applications
       L3 cache (shared)     & 24.75MB, 11 way \\
       %\midrule
       %(shared)       &      \\ 
-      Memory (per node)        & 192 GB, DDR4- MHz         \\
+      Memory (per node)        & 192 GB, DDR4-2666         \\
       %(per node)     & DDR4- MHz \\ 
       Cores/threads        & 18/36 \\ 
       Sockets/node         &  2 \\ 
       Total nodes          &1488 \\ 
       Interconnect  & Omnipath \\ 
-      Max Memory BW (per processor)   &  GB/sec       \\ 
+      Max Memory BW (per processor)   &  ~20GB/sec       \\ 
       Memory channels (per socket)            & 6           \\ 
       \bottomrule
       \end{tabular}
    \end{center}
 \end{table}
 
-We run all of our applications in MPI-only mode, and the collection
-runs are done using 128 ranks, one rank per core, on four nodes.
-We chose this configuration because it is small enough to feasibly 
-run large numbers of experiments relatively quickly, yet it is large 
-enough to capture important communication behavior.  We run each application
-five times to ensure acceptable variation and we align and average the data 
-as described in Section~\ref{sec:prep}. We choose 5 as a balance because running applications more than 5 times did not improve the results. %\todo{can we say "running applications more than 5 times did not improve our results, so we chose 5 as a balance"?}
-
-%select features, and produce similarity matrices. 
-%We use an Intel Skylake system to collect data on 25 proxy and parent applications from the Exascale Computing Project~\cite{ecp}, spanning several scientific domains. 
-
-\subsection{Proxy/Parent Application Suite}
-%We test 25 applications from the Exascale Computing Project~\cite{ecp}. 
-Table~\ref{tab:version} lists the proxy/parent pairs we analyzed, as well as additional, unpaired applications as a control.
-%
-Additionally, some proxy applications lack designated parents because they have export-controlled parent applications that are challenging to collect data from. Finally, we do not include Thornado, the proxy of Castro, because of I/O issues in data collection. %We will add it in future work.
-
-\si{do we need proxy details here? or make them appendix}
-AMG2013~\cite{AMG} is a proxy application for BoomerAMG and is a parallel
-algebraic multigrid solver for linear systems arising from unstructured grid
-problems.  We ran the default Laplace problem with a custom resizing.
-We did not run BoomerAMG because we did not have the expertise to ensure that we treated it fairly, but we intend to use it in the future.
-%
-LAMMPS~\cite{LAMMPS} is a classical molecular dynamics code, with particles ranging from a single atom to a large composition of material.  It implements mostly short-range solvers, but does include some methods for long-range particle interactions.  
-ExaMiniMD~\cite{ostiExaMiniMD}, which is a proxy for LAMMPS, implements limited types of interactions, and only short-range ones.
-%
-Laghos~\cite{Laghos} is a proxy application that is a high-order Lagrangian hydrocode meant to represent several compressible shock hydrocodes, including BLAST. We did not run BLAST because it is export controlled and we are still working with LLNL to run its experiments on their systems.
-%
-QMCPACK~\cite{qmcpack} is a quantum Monte Carlo package for computing the electronic structure of atoms. MiniQMC~\cite{richards2018fy18} covers QMCPACK's essential computational kernels. The computational themes of miniQMC and QMCPACK are particle methods, dense and sparse linear algebra, and Monte Carlo methods.
-%
-Vite~\cite{Vite} is an implementation of Louvain method for (undirected) graph clustering or community detection.
-%
-MiniVite~\cite{miniVite} is a proxy application for Vite that implements a single phase of the Louvain method in distributed memory for community
-detection. 
-%
-Nek5000~\cite{Nek5000} is a spectral element computational fluid dynamics
-solver while its proxy application Nekbone solves the Poisson equation with
-a spectral element multigrid preconditioned conjugate gradient solver.  
-%
-PENNANT serves as a proxy application for rad-hydro physics-based algorithms on an unstructured mesh, modeling the computation and memory access patterns typical to rad-hydro applications. It is modeled on, and thus serves as a proxy for, the LANL code FLAG.
-%
-PICSAR~\cite{PICSAR} is Particle-In-Cell solver, while its proxy
-application, PICSARlite, is a subset of the actual codebase.  
-%
-SNAP~\cite{snap} serves as a proxy application for discrete ordinates neutral particle transport, modeling the computation and memory access patterns typical to neutral particle transport applications. It is modeled on, and thus is a proxy for, the LANL code PARTISN.
-%
-SW4~\cite{SW42} is a geodynamics code that solves 3D seismc wave equations with local mesh refinement.
-SW4lite~\cite{ECPProxySuite1} is a scaled-down version of SW4 that has limited seismic modeling capabilities, but does solve the elastic wave equation and uses some of the same numerical kernels as those implemented in SW4. 
-%
-The Hardware Accelerated Cosmology Code (HACC)~\cite{HACC} is an 
-N-body framework that simulates the evolution of mass in the universe, with both short and long range interactions. The long-range solvers implement an underlying 3D FFT. 
-SWFFT~\cite{ECPProxySuite1} is the 3D FFT that is implemented in HACC.  Since this FFT accounts for a large portion of the HACC execution time, SWFFT serves as a proxy for HACC.  
-%
-Castro~\cite{Castro} is an adaptive mesh, astrophysical radiation
-hydrodynamics simulation code.  
-%
-OpenMC~\cite{OpenMC} is a Monte Carlo particle transport code.  
-%
-XSBench~\cite{XSBench} is a proxy application for OpenMC and represents the
-continuous energy macroscopic neutron cross section lookup kernel, which is
-a key computational kernel of Monte Carlo particle transport. 
-
-For each proxy/parent pair, we use the same input problem or parameters, where possible. In cases where we cannot run the same problem, we use the closest matching problem available by measuring the memory utilization\todo{defined how?done}, and in all cases we size both proxy and parent application problems to use about 50\% of the available memory. 
-% \definecolor{Gray}{gray}{0.9}
-% \begin{table}[!t]
-% \caption{Proxy/Parent version information}
-% \label{tab:version}
-% \centering
-% \begin{tabular}{ll|ll}
-% \toprule
-% \textbf{Proxy} & \textbf{Parent} & \textbf{Proxy} & \textbf{Parent}  \\ 
-% \midrule
-% AMG2013       &  \cellcolor{Gray!50}N/A        & ExaMiniMD      &  \cellcolor{Gray!50}LAMMPS    \\
-% Laghos         & \cellcolor{Gray!50}N/A        & miniQMC         & \cellcolor{Gray!50}QMCPACK   \\
-% miniVite       & \cellcolor{Gray!50}Vite       &  Nekbone        & \cellcolor{Gray!50}Nek5000     \\
-% PENNANT         & \cellcolor{Gray!50}N/A      & PICSARlite      &\cellcolor{Gray!50}PICSAR        \\
-% SNAP            & \cellcolor{Gray!50}N/A       & SW4lite         & \cellcolor{Gray!50}SW4       \\
-% SWFFT          & \cellcolor{Gray!50}HACC      & N/A            &\cellcolor{Gray!50}Castro      \\
-% XSBench        & \cellcolor{Gray!50}OpenMC     & hpcc\_dgemm    & \cellcolor{Gray!50}N/A        \\
-% hpcc\_random    & \cellcolor{Gray!50}N/A        & hpcc\_streams   &\cellcolor{Gray!50}N/A       \\
-% hpcg           & \cellcolor{Gray!50}N/A           \\ 
-% \bottomrule
-% \end{tabular}
-% \end{table}
-\definecolor{Gray}{gray}{0.9}
-\begin{table}[!t]
-\caption{Proxy/Parent version information}
-\label{tab:version}
-\centering
-\begin{tabular}{ll|ll}
-\toprule
-\textbf{Proxy} & \textbf{Parent} & \textbf{Proxy} & \textbf{Parent}  \\ 
-\midrule
-AMG2013~\cite{AMG}      &  \cellcolor{Gray!50}N/A        & ExaMiniMD~\cite{ostiExaMiniMD}      &  \cellcolor{Gray!50}LAMMPS~\cite{LAMMPS}    \\
-Laghos~\cite{Laghos}         & \cellcolor{Gray!50}N/A        & miniQMC~\cite{richards2018fy18}         & \cellcolor{Gray!50}QMCPACK~\cite{qmcpack}   \\
-miniVite~\cite{miniVite}       & \cellcolor{Gray!50}Vite~\cite{Vite}       &  Nekbone        & \cellcolor{Gray!50}Nek5000~\cite{Nek5000}     \\
-PENNANT         & \cellcolor{Gray!50}N/A      & PICSARlite      &\cellcolor{Gray!50}PICSAR~\cite{PICSAR}       \\
-SNAP~\cite{snap}            & \cellcolor{Gray!50}N/A       & SW4lite ~\cite{ECPProxySuite1}        & \cellcolor{Gray!50}SW4~\cite{SW42}       \\
-SWFFT~\cite{ECPProxySuite1}          & \cellcolor{Gray!50}HACC~\cite{HACC}      & N/A            &\cellcolor{Gray!50}Castro~\cite{Castro}      \\
-XSBench~\cite{XSBench}        & \cellcolor{Gray!50}OpenMC~\cite{OpenMC}    & hpcc\_dgemm~\cite{hpcc}   & \cellcolor{Gray!50}N/A        \\
-hpcc\_random~\cite{hpcc}    & \cellcolor{Gray!50}N/A        & hpcc\_streams~\cite{hpcc}   &\cellcolor{Gray!50}N/A       \\
-hpcg ~\cite{hpcg}          & \cellcolor{Gray!50}N/A           \\ 
-\bottomrule
-\end{tabular}
-\end{table}
 \subsection{Data Collection}
 \label{sec:collect}
-We use LDMS ~\cite{ldms_sandia} as the collection infrastructure in all of our experiments. LDMS implements a plug-in architecture, where plug-ins are  engineered to collect data for a particular system component. Over LDMS, we use the Performance Application Programming Interface (PAPI)~\cite{terpstra2010collecting} sampler, which %implements the PAPI API within the sampler to 
-connects to every process (rank) in each application, in order to collect node related performance counter data. We carefully examined all of the available performance events on each hardware platform to have a comprehensive insight of the application\todo{to what end?done}. We functionally tested to ensure that at a minimum, plausible data was returned for each event. We eliminated events that were returning no data or unstable (\ie vastly varying) data across application runs. Finally, we collected more than 500 hardware events for each application on the platform Intel Skylake. 
+We use LDMS ~\cite{ldms_sandia} as the collection infrastructure in all of our experiments. LDMS implements a plug-in architecture, where plug-ins are often engineered to collect data for a particular component or piece of the system. With LDMS, we use the Performance Application Programming Interface (PAPI)~\cite{terpstra2010collecting} sampler, which implements the PAPI API within the sampler to connect to every process (rank) in each application, in order to collect node related performance counter data. We carefully examined all of the available performance events on our hardware platform and functionally tested them to ensure that at a minimum, plausible data was returned for each event. We eliminated events that were returning no data or unstable (\ie vastly varying) data across application runs. Finally, we collected more than 500 hardware events for each application on the Intel Skylake platform.
 
-Several runs are required to collect the complete set of data since the hardware has limited performance counter resources, and if software multiplexing of these resources is too extreme, accuracy can be lost. Although the number of events collected per run is application specific (\ie, dependent on application behavior), we experimentally determined that if the number of events collected per experiment was 35 or less, the effect on accuracy was negligible. 
+Several runs are required to collect the complete set of data since the hardware has limited performance counter registers, and if software multiplexing of these resources is too extreme, accuracy can be lost. Although the number of events collected per run is application specific (\ie, dependent on application behavior), we experimentally determined that if the number of events collected per experiment was 35 or less, the effect on accuracy was negligible. 
 
 We collect the data in subgroups according to the event category suggested by experts. Thus, we have the following groups: Branch, DecodeIssue\_Pipeline, Dispatch\_Pipeline, Execution\_Pipeline, Frontend, Instruction\_Cache, Instruction\_Mix, L1\_D\_Cache, L2\_D\_Cache, L3\_D\_Cache, Memory\_Pipeline, Misc, Power, Retirement\_Pipeline, and Memory. Because we also aim to understand the ways in which a proxy is or is not a good model of the parent in terms of node components such as cache, TLB, branch predictor, and pipeline, we further grouped these subgroups into architectural concept groups, including cache, branch prediction, pipeline, instruction mix, memory, virtual memory, and others.
 
-Data is collected from each application process (\ie, each MPI rank) and we compute an average for each event across all ranks so that all data reflects an average rank value. We run each experiment 5 times, and average the results to be the final value.
+%Data is collected from each application process (\ie, each MPI rank) and we compute an average for each event across all ranks so that all data reflects an average rank value. We run each experiment 5 times, and average the results to be the final value.
 
-\subsection{Data Preparation}
+\subsection{Data Pre-Processing}
 \label{sec:prep}
-Before an application vector is input into similarity metrics, we normalize the event counts by cycles executed. Thus, all events which are input into the similarity matrix are $eventcount/cycle$.
+To account for performance variation and any performance counter variation, we run each event subgroup 5 times for each application, resulting in over 3000 data-collection runs.  Further, we collect data from each application process (\ie, each MPI rank).  For similarity analysis, we need a single vector for each application.  Therefore, the data must be carefully aligned and averaged while maintaining its physical meaning.  Although a detailed discussion of our methodology to accomplish this is outside the scope of this work, we (1) align the data in time (which accounts for performance variation), (2) compute the average for each event across all ranks for each of the five runs, (3) compute the average for each event for each of the five runs, and finally (4) normalize the event counts by cycles executed. The result is a vector of length 500 (for the Intel platform) for each application, where each element is 
+$event_count/CPU_cycles$.  
 
-While irrelevant (noisy) features may hurt the performance of the cluster learning for unsupervised feature selection~\cite{lindenbaum2021differentiable}, we intend to remove these features before the feature ranking process. %We leverage our model by domain expertise. 
+%Before an application vector is input into similarity metrics, we normalize the event counts by cycles executed. Thus, all events which are input into the similarity matrix are event counts or CPU cycles.
+Because irrelevant (noisy) features can hurt the performance of the cluster learning for unsupervised feature selection~\cite{lindenbaum2021differentiable}, we  remove these features before they are ranked. %We leverage our model by domain expertise. 
 Hardware events in our collection platform have a prefix (Table~\ref{tab:top20Cosine}), which allows us to filter some events using domain knowledge.
-We observe, for instance, that a large number of hardware events with the prefix `OFFCORE\_RESPONSE' always show extremely small values with little variance. We calculate the absolute degree difference entry by entry between cosine similarity matrices with or without features that have prefix `OFFCORE\_RESPONSE'. The sum of absolute difference is only 1.4 compared to 22078, which is the sum of all the entries in the cosine similarity matrix with all features. Thus, we get the \textbf{Observation 1}: 
-\textit{Events with the prefix `OFFCORE\_RESPONSE' are irrelevant features.} 
+We observe, for instance, that a large number of hardware events with the prefix `OFFCORE\_RESPONSE' always show extremely small values with little variance. We calculate the absolute degree difference, entry by entry, between cosine similarity matrices with or without these `OFFCORE\_RESPONSE' features. The sum of absolute difference is only 1.4 compared to 22078, which is the sum of all the entries in the cosine similarity matrix with all features.  From this, we propose \textbf{Observation 1}: 
+\textit{Events with the prefix `OFFCORE\_RESPONSE' are features that are not relevant in similarity analysis.} 
 
-After excluding these features with the prefix `OFFCORE\_RESPONSE', we also get rid of 10 features that do not have value for some applications. At this point, we have successfully decreased the feature number to 202. 
+After excluding these features with the prefix `OFFCORE\_RESPONSE', we also eliminate 10 additional features that do not have value for some applications. Therefore, prior to ML-based feature selection, the number of features is already reduced to 202.
 
-Many feature selection works consider centralization (zero mean), normalization (norm 2 equals 1), or standardization (variance equals 1) as preprocessing steps. Because each feature has an explicit physical meaning (hardware event counts per CPU cycle), if we preprocess the data as mentioned above, the feature scales and the relationship between features will be lost. Therefore, we keep the data scales as they are.
+Much feature selection work considers centralization (zero mean), normalization (norm 2 equals 1), or standardization (variance equals 1) as preprocessing steps. Because each feature in our data has an explicit physical meaning (hardware event counts per CPU cycle), if we preprocess the data as mentioned above, the feature scales and the relationship between features will be lost. Therefore, we keep the data scales as they are.
 %\subsection{Aligned data}
 %\paragraph{} 
