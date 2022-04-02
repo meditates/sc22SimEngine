@@ -17,8 +17,9 @@ have export-controlled parents for which data cannot be
 publicly released.  Also, Castro is the parent of a 
 proxy called Thornado~\cite{ECPProxySuite1}, but at this point, we are not
 using Thornado because of I/O issues within the code that caused problems with 
-data collection.
-\cite{ECPProxySuite1}.
+data collection. Per developer documentation, all of the proxy/parent pairs in our suite
+comprise proxies that are intended to represent the computation, communication, and memory 
+behavior of their respective parent.
 
 We use the Intel compiler to build
 all of the applications except OpenMC.  
@@ -26,13 +27,13 @@ On the Intel Skylake system, we use \emph{icc} 20.0.2.254 and
 \emph{OpenMPI} 4.0.3.  OpenMC requires the use of 
 the 8.3.1 GNU compiler, due to inherent constraints
 within the code.
-
+%
 For each proxy/parent pair,
 we use the same input problem and/or parameters where possible. 
 In cases where we cannot run the same problem, we use the closest 
 matching problem available and we size both proxy and parent application
 problems in all cases to use about 50\% of the available memory.   
-
+%
 \definecolor{Gray}{gray}{0.9}
 \begin{table}[!t]
 \scriptsize
@@ -61,20 +62,17 @@ HPCC benchmark~\cite{hpcc}        &  \cellcolor{Gray!50}1.5.0             & N/A 
 \bottomrule
 \end{tabular}
 \end{table}
-
+%
 Table~\ref{tab:versions} contains all of the proxy/parent pairs and other
 applications and the specific versions that we use in this work. If a
 date is given, it is the latest code available in the repository at
 that date.
 
-\jeanine{I put the descriptions of the applications in, but we can delete
-if we need the space.}
 AMG2013~\cite{AMG} is a proxy application for BoomerAMG and is a parallel
 algebraic multigrid solver for linear systems arising from unstructured grid
-problems.  %We are using version 2013\_0 and are running 
+problems.  %We are using version 2013\_0 and are running %
 We ran the default Laplace problem with a custom resizing.
-We did not run BoomerAMG because we did not have the expertise to 
-ensure that we treated it fairly, but we intend to use it in the future.
+%
 %
 LAMMPS~\cite{LAMMPS} is a classical molecular dynamics code, 
 %that models particles in solid, liquid, and gas states.  A 
@@ -92,9 +90,7 @@ hydrocode meant to represent several compressible shock hydrocodes, including BL
 %version 2.11.2, metis version 4.0.3, and mfem version 4.1.1.  
 %The problem that we are running is 
 %We ran the Sedov blast wave problem with partial assembly. 
-We did not
-run BLAST because it is export controlled and we are still working with LLNL
-to run its experiments on their systems.
+
 %
 QMCPACK~\cite{qmcpack} is a quantum Monte Carlo package for computing the electronic structure of atoms. MiniQMC~\cite{richards2018fy18} 
 %is a simplified computational proxy covering 
@@ -229,14 +225,18 @@ We collect the data in subgroups according to the event category suggested by ex
 
 \subsection{Data Pre-Processing}
 \label{sec:prep}
-To account for performance variation and any performance counter variation, we run each event subgroup 5 times for each application, resulting in over 3000 data-collection runs.  Further, we collect data from each application process (\ie, each MPI rank).  For similarity analysis, we need a single vector for each application.  Therefore, the data must be carefully aligned and averaged while maintaining its physical meaning.  Although a detailed discussion of our methodology to accomplish this is outside the scope of this work, we (1) align the data in time (which accounts for performance variation), (2) compute the average for each event across all ranks for each of the five runs, (3) compute the average for each event for each of the five runs, and finally (4) normalize the event counts by cycles executed. The result is a vector of length 500 (for the Intel platform) for each application, where each element is 
+To account for performance variation and any performance counter variation, we run each event subgroup 5 times for each application, resulting in over 3000 data-collection runs.  Further, we collect data from each application process (\ie, each MPI rank).  For similarity analysis, we need a single vector for each application.  
+%Therefore, the data must be carefully aligned and averaged while maintaining its physical meaning.  Although a detailed discussion of our methodology to accomplish this is outside the scope of this work, 
+Therefore, we (1) compute the average for each event across all ranks for each of the five runs, (2) compute the average for each event for each of the five runs, and finally (3) normalize the event counts by cycles executed. The result is a vector of length 500 (for the Intel platform) for each application, where each element is 
 $event\_count/CPU\_cycles$.  
+%(1) align the data in time (which accounts for performance variation), (
 
 %Before an application vector is input into similarity metrics, we normalize the event counts by cycles executed. Thus, all events which are input into the similarity matrix are event counts or CPU cycles.
-Because irrelevant (noisy) features can hurt the performance of the cluster learning for unsupervised feature selection~\cite{lindenbaum2021differentiable}, we  remove these features before they are ranked. %We leverage our model by domain expertise. 
+Because irrelevant (noisy) features can hurt the performance of the cluster learning for unsupervised feature selection~\cite{lindenbaum2021differentiable}, we remove these features before they are ranked. %We leverage our model by domain expertise. 
 Hardware events in our collection platform have a prefix (Table~\ref{tab:top20Cosine}), which allows us to filter some events using domain knowledge.
-We observe, for instance, that a large number of hardware events with the prefix `OFFCORE\_RESPONSE' always show extremely small values with little variance. We calculate the absolute degree difference, entry by entry, between cosine similarity matrices with or without these `OFFCORE\_RESPONSE' features. The sum of absolute difference is only 1.4 compared to 22078, which is the sum of all the entries in the cosine similarity matrix with all features.  From this, we propose \textbf{Observation 1}: 
-\textit{Events with the prefix `OFFCORE\_RESPONSE' are features that are not relevant in similarity analysis.} 
+We observe, for instance, that a large number of hardware events with the prefix `OFFCORE\_RESPONSE' always show extremely small values with little variance. We calculate the absolute degree difference, entry by entry, between cosine similarity matrices with or without these `OFFCORE\_RESPONSE' features. The sum of absolute difference is only 1.4 compared to 22078, which is the sum of all the entries in the cosine similarity matrix with all features.  From this, we propose 
+\begin{mdframed}
+\textbf{Observation 1}: \textit{Events that begin with the prefix `OFFCORE\_RESPONSE' are irrelevant in similarity analysis.} \end{mdframed}
 
 After excluding these features with the prefix `OFFCORE\_RESPONSE', we also eliminate 10 additional features that do not have value for some applications. Therefore, prior to ML-based feature selection, the number of features is already reduced to 202.
 

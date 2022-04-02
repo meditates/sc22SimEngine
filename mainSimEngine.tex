@@ -21,6 +21,7 @@
 \usepackage{xcolor}
 \usepackage{colortbl}
 \usepackage{url}
+\usepackage[linewidth=1pt]{mdframed}
 %\usepackage[page]{appendix}
 
 \urlstyle{rm}  
@@ -94,12 +95,23 @@ oaaziz@sandia.gov}
 Albuquerque,New Mexico,USA\\
 jeacook@sandia.gov}
 \and
-\IEEEauthorblockN{4\textsuperscript{th} Avani Wildani}
+\IEEEauthorblockN{4\textsuperscript{th} Jonathan Cook}
+\IEEEauthorblockA{
+\textit{New Mexico State University}\\
+\\
+joncook@nmsu.edu}
+\and
+\IEEEauthorblockN{5\textsuperscript{th}Courtenay Vaughan }
+\IEEEauthorblockA{
+\textit{Sandia National Laboratories}\\
+Albuquerque,New Mexico,USA\\
+ctvaugh@sandia.gov}
+\and
+\IEEEauthorblockN{6\textsuperscript{th} Avani Wildani}
 \IEEEauthorblockA{
 \textit{Emory University}\\
 Atlanta, GA, USA\\
 avani@mathcs.emory.edu}
-
 }
 }%------end comment out-------
 \maketitle
@@ -107,11 +119,11 @@ avani@mathcs.emory.edu}
 \begin{abstract}
 %Proxy applications are smaller models of a larger parent application that are targeted to represent particular characteristics such as programming model or node, memory, or communication behavior of the parent. They are widely used in HPC hardware/software co-design as code development tools, and in system acquisition as performance benchmarks. We often accept, qualitatively, that proxies are faithful representations of their parents, but this has little quantitative validation. In this work, we propose a framework called \us to quantitatively demonstrate the correspondence of proxy to parent in their underlying node and memory hardware behavior. \us implements similarity algorithms to compare application behavior, and Laplacian score with correlation filter to select the most important features. It is a robust framework to characterize behavioral similarities that can be applied to many problems in the HPC context.Using the selected concise features, we show that 75\% of the proxies in our suite demonstrate highly convergent behavior with respect to their parents, and therefore, are faithful representations.
 %\us is a robust framework to determine behavioral similarities that can be applied to many problems in the HPC context.  
-Proxy applications are smaller models of a larger parent application, targeted to represent characteristics such as the programming model, or node, memory, or communication behavior of the parent. They are widely used in HPC hardware/software co-design as code development tools, and in system acquisition as performance benchmarks. We often accept, qualitatively, that proxies are faithful representations of their parents, but this has little quantitative validation. In this work, we propose \us, a robust framework to characterize behavioral similarities that can be applied to many problems in the HPC context. \us implements similarity algorithms to compare application behavior, and Laplacian score with a correlation filter to select the most important application features. Using the selected concise features, we show that 75\% of the proxies in our suite demonstrate highly convergent behavior with respect to their parents, and therefore, are faithful representations.
+Proxy applications are smaller models of a larger parent application, targeted to represent characteristics such as the programming model or node, memory, or communication behaviors of the parent. They are widely used in HPC hardware/software co-design as system design and code development tools, and in system acquisition as performance benchmarks. We often accept, qualitatively, that proxies are faithful representations of their parents, but this has little quantitative validation. In this work, we propose \us, a robust framework to characterize behavioral similarities that can be applied to many problems in the HPC context. \us implements similarity algorithms to compare application behaviors, and Laplacian scores with a correlation filter to select the most important application features. Using the selected features, we show that 75\% of the proxies in our suite demonstrate highly convergent behavior with respect to their parents, and therefore, are faithful representations.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Co-design, Performance analysis, proxy/parent representativeness
+Co-design, HPC Performance analysis, Application proxies
 
 \end{IEEEkeywords}
 
@@ -122,14 +134,14 @@ Co-design, Performance analysis, proxy/parent representativeness
 \input{relatedWork.tex}
 \input{conclusion.tex}
 \input{acknowledge.tex}
-\input{lock.tex}
+%\input{lock.tex}
 
 
 \bibliographystyle{abbrv}
 \bibliography{ref}
 
-\begin{appendices}
-\input{appendix.tex}
-\end{appendices}
+% \begin{appendices}
+% \input{appendix.tex}
+% \end{appendices}
 
 \end{document}
